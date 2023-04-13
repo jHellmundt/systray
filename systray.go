@@ -53,6 +53,7 @@ type MenuItem struct {
 	isCheckable bool
 	// parent item, for sub menus
 	parent *MenuItem
+	hidden bool
 }
 
 func (item *MenuItem) String() string {
@@ -70,6 +71,7 @@ func newMenuItem(title string, tooltip string, parent *MenuItem) *MenuItem {
 		title:       title,
 		tooltip:     tooltip,
 		disabled:    false,
+		hidden:      false,
 		checked:     false,
 		isCheckable: false,
 		parent:      parent,
@@ -197,6 +199,11 @@ func (item *MenuItem) Disabled() bool {
 	return item.disabled
 }
 
+// Hidden checks if the menu item is hidden
+func (item *MenuItem) Hidden() bool {
+	return item.hidden
+}
+
 // Enable a menu item regardless if it's previously enabled or not
 func (item *MenuItem) Enable() {
 	item.disabled = false
@@ -211,6 +218,7 @@ func (item *MenuItem) Disable() {
 
 // Hide hides a menu item
 func (item *MenuItem) Hide() {
+	item.hidden = true
 	hideMenuItem(item)
 }
 
@@ -224,6 +232,7 @@ func (item *MenuItem) Remove() {
 
 // Show shows a previously hidden menu item
 func (item *MenuItem) Show() {
+	item.hidden = false
 	showMenuItem(item)
 }
 
