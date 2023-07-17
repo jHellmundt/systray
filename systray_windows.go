@@ -7,6 +7,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -897,6 +898,8 @@ func registerSystray() (err error) {
 
 	wt.initialized.Set()
 	systrayReady()
+
+	return
 }
 
 var m = &struct {
