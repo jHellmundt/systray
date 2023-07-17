@@ -40,8 +40,10 @@ func (item *MenuItem) SetTemplateIcon(templateIconBytes []byte, regularIconBytes
 	C.setMenuItemIcon(cstr, (C.int)(len(templateIconBytes)), C.int(item.id), true)
 }
 
-func registerSystray() {
+func registerSystray() (err error) {
 	C.registerSystray()
+
+	return
 }
 
 func nativeLoop() {

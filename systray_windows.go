@@ -884,14 +884,14 @@ func create32BitHBitmap(hDC uintptr, cx, cy int32) (uintptr, error) {
 	return hBitmap, nil
 }
 
-func registerSystray() {
-	if err := wt.initInstance(); err != nil {
-		log.Printf("systray error: unable to init instance: %s\n", err)
+func registerSystray() (err error) {
+	if err = wt.initInstance(); err != nil {
+		err = fmt.Errorf("systray error: unable to init instance: %w", err)
 		return
 	}
 
-	if err := wt.createMenu(); err != nil {
-		log.Printf("systray error: unable to create menu: %s\n", err)
+	if err = wt.createMenu(); err != nil {
+		err = fmt.Errorf("systray error: unable to create menu: %w", err)
 		return
 	}
 

@@ -80,11 +80,16 @@ func newMenuItem(title string, tooltip string, parent *MenuItem) *MenuItem {
 
 // Run initializes GUI and starts the event loop, then invokes the onReady
 // callback. It blocks until systray.Quit() is called.
-func Run(onReady, onExit func()) {
+func Run(onReady, onExit func()) (err error) {
 	setInternalLoop(true)
-	Register(onReady, onExit)
+	if err = Register(onReady, onExit); err != nil {
+		err = fmt.Errorf("failed to register tray: %w", err)
+		return
+	}
 
 	nativeLoop()
+
+	return
 }
 
 // RunWithExternalLoop allows the systemtray module to operate with other tookits.
@@ -103,7 +108,7 @@ func RunWithExternalLoop(onReady, onExit func()) (start, end func()) {
 // needs to show other UI elements, for example, webview.
 // To overcome some OS weirdness, On macOS versions before Catalina, calling
 // this does exactly the same as Run().
-func Register(onReady func(), onExit func()) {
+func Register(onReady func(), onExit func()) (err error) {
 	if onReady == nil {
 		systrayReady = func() {}
 	} else {
@@ -124,7 +129,7 @@ func Register(onReady func(), onExit func()) {
 	}
 	systrayExit = onExit
 	systrayExitCalled = false
-	registerSystray()
+	return registerSystray()
 }
 
 // ResetMenu will remove all menu items
