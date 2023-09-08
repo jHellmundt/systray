@@ -72,6 +72,9 @@ var (
 
 	// ErrTrayNotReadyYet is returned by functions when they are called before the tray has been initialized.
 	ErrTrayNotReadyYet = errors.New("tray not ready yet")
+
+	tempDir         string
+	initTempDirOnce sync.Once
 )
 
 // Contains window class information.
@@ -967,10 +970,22 @@ func quit() {
 func setInternalLoop(bool) {
 }
 
-func iconBytesToFilePath(iconBytes []byte) (string, error) {
+// Error handling is non existant in this package anyways
+func setTempDir() {
+	var homeDir string
+	homeDir, _ = os.UserHomeDir()
+
+	os.MkdirAll(tempDir, 0777)
+
+	tempDir = filepath.Join(homeDir, `AppData\Local\Temp`)
+}
+
+func iconBytesToFilePath(iconBytes []byte) (iconFilePath string, err error) {
+	initTempDirOnce.Do(setTempDir)
+
 	bh := md5.Sum(iconBytes)
 	dataHash := hex.EncodeToString(bh[:])
-	iconFilePath := filepath.Join(os.TempDir(), "systray_temp_icon_"+dataHash)
+	iconFilePath = filepath.Join(tempDir, "systray_temp_icon_"+dataHash)
 
 	if _, err := os.Stat(iconFilePath); os.IsNotExist(err) {
 		if err := ioutil.WriteFile(iconFilePath, iconBytes, 0644); err != nil {
@@ -983,7 +998,13 @@ func iconBytesToFilePath(iconBytes []byte) (string, error) {
 // SetIcon sets the systray icon.
 // iconBytes should be the content of .ico for windows and .ico/.jpg/.png
 // for other platforms.
-func SetIcon(iconFilePath string) {
+func SetIcon(iconBytes []byte) {
+	iconFilePath, err := iconBytesToFilePath(iconBytes)
+	if err != nil {
+		log.Printf("systray error: unable to write icon data to temp file: %s\n", err)
+		return
+	}
+
 	if err := wt.setIcon(iconFilePath); err != nil {
 		log.Printf("systray error: unable to set icon: %s\n", err)
 		return
@@ -994,8 +1015,8 @@ func SetIcon(iconFilePath string) {
 // to a regular icon on other platforms.
 // templateIconBytes and iconBytes should be the content of .ico for windows and
 // .ico/.jpg/.png for other platforms.
-func SetTemplateIcon(templateIconBytes []byte, regularIconPath string) {
-	SetIcon(regularIconPath)
+func SetTemplateIcon(templateIconBytes []byte, regularIconBytes []byte) {
+	SetIcon(regularIconBytes)
 }
 
 // SetTitle sets the systray title, only available on Mac and Linux.
